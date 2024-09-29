@@ -1,0 +1,324 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "%pip install hdbscan"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Collecting hdbscan\n  Downloading hdbscan-0.8.29.tar.gz (5.2 MB)\n\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m5.2/5.2 MB\u001b[0m \u001b[31m63.5 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m:00:01\u001b[0m00:01\u001b[0m\n\u001b[?25h  Installing build dependencies ... \u001b[?25l-\b \b\\\b \b|\b \b/\b \b-\b \b\\\b \b|\b \bdone\n\u001b[?25h  Getting requirements to build wheel ... \u001b[?25l-\b \bdone\n\u001b[?25h  Preparing metadata (pyproject.toml) ... \u001b[?25l-\b \bdone\n\u001b[?25hRequirement already satisfied: numpy>=1.20 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (1.23.5)\nRequirement already satisfied: scikit-learn>=0.20 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (1.2.2)\nRequirement already satisfied: scipy>=1.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (1.10.1)\nRequirement already satisfied: joblib>=1.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (1.2.0)\nCollecting cython>=0.27\n  Using cached Cython-0.29.34-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl (2.0 MB)\nRequirement already satisfied: threadpoolctl>=2.0.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from scikit-learn>=0.20->hdbscan) (3.1.0)\nBuilding wheels for collected packages: hdbscan\n  Building wheel for hdbscan (pyproject.toml) ... \u001b[?25l-\b \b\\\b \b|\b \b/\b \b-\b \b\\\b \b|\b \b/\b \b-\b \b\\\b \b|\b \b/\b \b-\b \b\\\b \b|\b \b/\b \b-\b \b\\\b \b|\b \b/\b \b-\b \b\\\b \b|\b \b/\b \b-\b \b\\\b \bdone\n\u001b[?25h  Created wheel for hdbscan: filename=hdbscan-0.8.29-cp38-cp38-linux_x86_64.whl size=3913908 sha256=aa596a10f86dfe329b762a3e18c082a96a82d55864bd716b6a533fe59fb056d2\n  Stored in directory: /home/azureuser/.cache/pip/wheels/e0/05/13/be2a4900719d0ca70eac9e3347f8a23961ef6fa03a489457a6\nSuccessfully built hdbscan\nInstalling collected packages: cython, hdbscan\nSuccessfully installed cython-0.29.34 hdbscan-0.8.29\nNote: you may need to restart the kernel to use updated packages.\n"
+        }
+      ],
+      "execution_count": 1,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\r\n",
+        "import pandas as pd\r\n",
+        "from hdbscan import HDBSCAN\r\n",
+        "\r\n",
+        "df = pd.read_pickle(\"clean_data.pkl\")\r\n",
+        "df.columns"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 18,
+          "data": {
+            "text/plain": "Index(['ACCT_NBR', 'SUCCESSOR', 'MS_METER_NBR', 'BS_RATE', 'time_series',\n       'label', 'XRHSH', 'VOLTAGE', 'PARNO', 'CONTRACT_CAPACITY',\n       'ACCT_CONTROL', 'ACCT_WGS84_X', 'ACCT_WGS84_Y', 'SUPPLIER',\n       'SUPPLIER_TO', 'REQUEST_TYPE', 'COMPL_REQUEST_STATUS'],\n      dtype='object')"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 18,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681952931071
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df_geo = pd.DataFrame()\r\n",
+        "\r\n",
+        "# Replace commas with decimal points in the 'ACCT_WGS84_X' and 'ACCT_WGS84_Y' columns\r\n",
+        "df_geo['ACCT_WGS84_X'] = df['ACCT_WGS84_X'].str.replace(',', '.')\r\n",
+        "df_geo['ACCT_WGS84_Y'] = df['ACCT_WGS84_Y'].str.replace(',', '.')\r\n",
+        "\r\n",
+        "# Convert the columns to float data type\r\n",
+        "df_geo = df_geo.astype({\"ACCT_WGS84_X\": \"float32\", \"ACCT_WGS84_Y\": \"float32\"})\r\n",
+        "\r\n",
+        "# Check the data types of the columns\r\n",
+        "print(df_geo.dtypes)\r\n"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "ACCT_WGS84_X    float32\nACCT_WGS84_Y    float32\ndtype: object\n"
+        }
+      ],
+      "execution_count": 19,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681952940828
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import gc\r\n",
+        "del df\r\n",
+        "gc.collect()"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 20,
+          "data": {
+            "text/plain": "10362"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 20,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681952948049
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\r\n",
+        "from hdbscan import HDBSCAN\r\n",
+        "\r\n",
+        "class GeoClustering:\r\n",
+        "    def __init__(self, data):\r\n",
+        "        self.data = data\r\n",
+        "        self.hdbscan = None\r\n",
+        "\r\n",
+        "    def deg2rad(self, degrees):\r\n",
+        "        return np.radians(degrees)\r\n",
+        "\r\n",
+        "    def cluster(self, min_samples=2, chunk_size=50000):\r\n",
+        "        # Convert coordinates to radians\r\n",
+        "        rad_coords = self.deg2rad(self.data)\r\n",
+        "\r\n",
+        "        # Divide the dataset into smaller chunks\r\n",
+        "        num_chunks = int(np.ceil(rad_coords.shape[0] / chunk_size))\r\n",
+        "        chunked_data = np.array_split(rad_coords, num_chunks)\r\n",
+        "\r\n",
+        "        # Initialize a new column for cluster labels\r\n",
+        "        self.data['cluster_labels'] = -1\r\n",
+        "\r\n",
+        "        # Process each chunk separately\r\n",
+        "        for idx, chunk in enumerate(chunked_data):\r\n",
+        "            print(f\"Processing chunk {idx + 1} of {num_chunks}\")\r\n",
+        "\r\n",
+        "            # Instantiate HDBSCAN using the haversine metric\r\n",
+        "            self.hdbscan = HDBSCAN(min_samples=min_samples, metric='haversine', core_dist_n_jobs=-1, prediction_data=True)\r\n",
+        "\r\n",
+        "            # Fit HDBSCAN to the chunk\r\n",
+        "            clusters = self.hdbscan.fit(chunk)\r\n",
+        "\r\n",
+        "            # Store the cluster labels for this chunk\r\n",
+        "            chunk_indices = chunk.index\r\n",
+        "            self.data.loc[chunk_indices, 'cluster_labels'] = clusters.labels_\r\n",
+        "\r\n",
+        "        return self.data\r\n",
+        "\r\n",
+        "    def predict(self, new_points):\r\n",
+        "        if self.hdbscan is None:\r\n",
+        "            raise ValueError(\"You must call .cluster() before calling .predict()\")\r\n",
+        "\r\n",
+        "        # Convert new_points to radians\r\n",
+        "        rad_new_points = self.deg2rad(new_points)\r\n",
+        "\r\n",
+        "        # Predict the cluster labels for the new points using approximate_predict()\r\n",
+        "        labels, strengths = HDBSCAN.approximate_predict(self.hdbscan, rad_new_points)\r\n",
+        "\r\n",
+        "        return labels, strengths\r\n",
+        "        \r\n",
+        "    def save(self, file_path):\r\n",
+        "        if self.hdbscan is None:\r\n",
+        "            raise ValueError(\"You must call .cluster() before calling .save()\")\r\n",
+        "        \r\n",
+        "        with open(file_path, 'wb') as f:\r\n",
+        "            pickle.dump(self.hdbscan, f)\r\n",
+        "\r\n",
+        "    def load(self, file_path):\r\n",
+        "        with open(file_path, 'rb') as f:\r\n",
+        "            self.hdbscan = pickle.load(f)"
+      ],
+      "outputs": [],
+      "execution_count": 25,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681953710870
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df_geo = df_geo.fillna(0)"
+      ],
+      "outputs": [],
+      "execution_count": 35,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681953923824
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pickle\r\n",
+        "\r\n",
+        "# Instantiate GeoClustering with the clustered_data\r\n",
+        "geo_clustering = GeoClustering(df_geo)\r\n",
+        "\r\n",
+        "geo_data = geo_clustering.cluster(chunk_size=5000)\r\n",
+        "\r\n",
+        "geo_clustering.save(\"hdbscan_model.pkl\")\r\n",
+        "\r\n",
+        "# d) Save the new clustered dataset in a new pickle\r\n",
+        "with open('clustered_data.pkl', 'wb') as file:\r\n",
+        "    pickle.dump(geo_data, file)\r\n",
+        "\r\n"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Processing chunk 1 of 307\nProcessing chunk 2 of 307\nProcessing chunk 3 of 307\nProcessing chunk 4 of 307\nProcessing chunk 5 of 307\nProcessing chunk 6 of 307\nProcessing chunk 7 of 307\nProcessing chunk 8 of 307\nProcessing chunk 9 of 307\nProcessing chunk 10 of 307\nProcessing chunk 11 of 307\nProcessing chunk 12 of 307\nProcessing chunk 13 of 307\nProcessing chunk 14 of 307\nProcessing chunk 15 of 307\nProcessing chunk 16 of 307\nProcessing chunk 17 of 307\nProcessing chunk 18 of 307\nProcessing chunk 19 of 307\nProcessing chunk 20 of 307\nProcessing chunk 21 of 307\nProcessing chunk 22 of 307\nProcessing chunk 23 of 307\nProcessing chunk 24 of 307\nProcessing chunk 25 of 307\nProcessing chunk 26 of 307\nProcessing chunk 27 of 307\nProcessing chunk 28 of 307\nProcessing chunk 29 of 307\nProcessing chunk 30 of 307\nProcessing chunk 31 of 307\nProcessing chunk 32 of 307\nProcessing chunk 33 of 307\nProcessing chunk 34 of 307\nProcessing chunk 35 of 307\nProcessing chunk 36 of 307\nProcessing chunk 37 of 307\nProcessing chunk 38 of 307\nProcessing chunk 39 of 307\nProcessing chunk 40 of 307\nProcessing chunk 41 of 307\nProcessing chunk 42 of 307\nProcessing chunk 43 of 307\nProcessing chunk 44 of 307\nProcessing chunk 45 of 307\nProcessing chunk 46 of 307\nProcessing chunk 47 of 307\nProcessing chunk 48 of 307\nProcessing chunk 49 of 307\nProcessing chunk 50 of 307\nProcessing chunk 51 of 307\nProcessing chunk 52 of 307\nProcessing chunk 53 of 307\nProcessing chunk 54 of 307\nProcessing chunk 55 of 307\nProcessing chunk 56 of 307\nProcessing chunk 57 of 307\nProcessing chunk 58 of 307\nProcessing chunk 59 of 307\nProcessing chunk 60 of 307\nProcessing chunk 61 of 307\nProcessing chunk 62 of 307\nProcessing chunk 63 of 307\nProcessing chunk 64 of 307\nProcessing chunk 65 of 307\nProcessing chunk 66 of 307\nProcessing chunk 67 of 307\nProcessing chunk 68 of 307\nProcessing chunk 69 of 307\nProcessing chunk 70 of 307\nProcessing chunk 71 of 307\nProcessing chunk 72 of 307\nProcessing chunk 73 of 307\nProcessing chunk 74 of 307\nProcessing chunk 75 of 307\nProcessing chunk 76 of 307\nProcessing chunk 77 of 307\nProcessing chunk 78 of 307\nProcessing chunk 79 of 307\nProcessing chunk 80 of 307\nProcessing chunk 81 of 307\nProcessing chunk 82 of 307\nProcessing chunk 83 of 307\nProcessing chunk 84 of 307\nProcessing chunk 85 of 307\nProcessing chunk 86 of 307\nProcessing chunk 87 of 307\nProcessing chunk 88 of 307\nProcessing chunk 89 of 307\nProcessing chunk 90 of 307\nProcessing chunk 91 of 307\nProcessing chunk 92 of 307\nProcessing chunk 93 of 307\nProcessing chunk 94 of 307\nProcessing chunk 95 of 307\nProcessing chunk 96 of 307\nProcessing chunk 97 of 307\nProcessing chunk 98 of 307\nProcessing chunk 99 of 307\nProcessing chunk 100 of 307\nProcessing chunk 101 of 307\nProcessing chunk 102 of 307\nProcessing chunk 103 of 307\nProcessing chunk 104 of 307\nProcessing chunk 105 of 307\nProcessing chunk 106 of 307\nProcessing chunk 107 of 307\nProcessing chunk 108 of 307\nProcessing chunk 109 of 307\nProcessing chunk 110 of 307\nProcessing chunk 111 of 307\nProcessing chunk 112 of 307\nProcessing chunk 113 of 307\nProcessing chunk 114 of 307\nProcessing chunk 115 of 307\nProcessing chunk 116 of 307\nProcessing chunk 117 of 307\nProcessing chunk 118 of 307\nProcessing chunk 119 of 307\nProcessing chunk 120 of 307\nProcessing chunk 121 of 307\nProcessing chunk 122 of 307\nProcessing chunk 123 of 307\nProcessing chunk 124 of 307\nProcessing chunk 125 of 307\nProcessing chunk 126 of 307\nProcessing chunk 127 of 307\nProcessing chunk 128 of 307\nProcessing chunk 129 of 307\nProcessing chunk 130 of 307\nProcessing chunk 131 of 307\nProcessing chunk 132 of 307\nProcessing chunk 133 of 307\nProcessing chunk 134 of 307\nProcessing chunk 135 of 307\nProcessing chunk 136 of 307\nProcessing chunk 137 of 307\nProcessing chunk 138 of 307\nProcessing chunk 139 of 307\nProcessing chunk 140 of 307\nProcessing chunk 141 of 307\nProcessing chunk 142 of 307\nProcessing chunk 143 of 307\nProcessing chunk 144 of 307\nProcessing chunk 145 of 307\nProcessing chunk 146 of 307\nProcessing chunk 147 of 307\nProcessing chunk 148 of 307\nProcessing chunk 149 of 307\nProcessing chunk 150 of 307\nProcessing chunk 151 of 307\nProcessing chunk 152 of 307\nProcessing chunk 153 of 307\nProcessing chunk 154 of 307\nProcessing chunk 155 of 307\nProcessing chunk 156 of 307\nProcessing chunk 157 of 307\nProcessing chunk 158 of 307\nProcessing chunk 159 of 307\nProcessing chunk 160 of 307\nProcessing chunk 161 of 307\nProcessing chunk 162 of 307\nProcessing chunk 163 of 307\nProcessing chunk 164 of 307\nProcessing chunk 165 of 307\nProcessing chunk 166 of 307\nProcessing chunk 167 of 307\nProcessing chunk 168 of 307\nProcessing chunk 169 of 307\nProcessing chunk 170 of 307\nProcessing chunk 171 of 307\nProcessing chunk 172 of 307\nProcessing chunk 173 of 307\nProcessing chunk 174 of 307\nProcessing chunk 175 of 307\nProcessing chunk 176 of 307\nProcessing chunk 177 of 307\nProcessing chunk 178 of 307\nProcessing chunk 179 of 307\nProcessing chunk 180 of 307\nProcessing chunk 181 of 307\nProcessing chunk 182 of 307\nProcessing chunk 183 of 307\nProcessing chunk 184 of 307\nProcessing chunk 185 of 307\nProcessing chunk 186 of 307\nProcessing chunk 187 of 307\nProcessing chunk 188 of 307\nProcessing chunk 189 of 307\nProcessing chunk 190 of 307\nProcessing chunk 191 of 307\nProcessing chunk 192 of 307\nProcessing chunk 193 of 307\nProcessing chunk 194 of 307\nProcessing chunk 195 of 307\nProcessing chunk 196 of 307\nProcessing chunk 197 of 307\nProcessing chunk 198 of 307\nProcessing chunk 199 of 307\nProcessing chunk 200 of 307\nProcessing chunk 201 of 307\nProcessing chunk 202 of 307\nProcessing chunk 203 of 307\nProcessing chunk 204 of 307\nProcessing chunk 205 of 307\nProcessing chunk 206 of 307\nProcessing chunk 207 of 307\nProcessing chunk 208 of 307\nProcessing chunk 209 of 307\nProcessing chunk 210 of 307\nProcessing chunk 211 of 307\nProcessing chunk 212 of 307\nProcessing chunk 213 of 307\nProcessing chunk 214 of 307\nProcessing chunk 215 of 307\nProcessing chunk 216 of 307\nProcessing chunk 217 of 307\nProcessing chunk 218 of 307\nProcessing chunk 219 of 307\nProcessing chunk 220 of 307\nProcessing chunk 221 of 307\nProcessing chunk 222 of 307\nProcessing chunk 223 of 307\nProcessing chunk 224 of 307\nProcessing chunk 225 of 307\nProcessing chunk 226 of 307\nProcessing chunk 227 of 307\nProcessing chunk 228 of 307\nProcessing chunk 229 of 307\nProcessing chunk 230 of 307\nProcessing chunk 231 of 307\nProcessing chunk 232 of 307\nProcessing chunk 233 of 307\nProcessing chunk 234 of 307\nProcessing chunk 235 of 307\nProcessing chunk 236 of 307\nProcessing chunk 237 of 307\nProcessing chunk 238 of 307\nProcessing chunk 239 of 307\nProcessing chunk 240 of 307\nProcessing chunk 241 of 307\nProcessing chunk 242 of 307\nProcessing chunk 243 of 307\nProcessing chunk 244 of 307\nProcessing chunk 245 of 307\nProcessing chunk 246 of 307\nProcessing chunk 247 of 307\nProcessing chunk 248 of 307\nProcessing chunk 249 of 307\nProcessing chunk 250 of 307\nProcessing chunk 251 of 307\nProcessing chunk 252 of 307\nProcessing chunk 253 of 307\nProcessing chunk 254 of 307\nProcessing chunk 255 of 307\nProcessing chunk 256 of 307\nProcessing chunk 257 of 307\nProcessing chunk 258 of 307\nProcessing chunk 259 of 307\nProcessing chunk 260 of 307\nProcessing chunk 261 of 307\nProcessing chunk 262 of 307\nProcessing chunk 263 of 307\nProcessing chunk 264 of 307\nProcessing chunk 265 of 307\nProcessing chunk 266 of 307\nProcessing chunk 267 of 307\nProcessing chunk 268 of 307\nProcessing chunk 269 of 307\nProcessing chunk 270 of 307\nProcessing chunk 271 of 307\nProcessing chunk 272 of 307\nProcessing chunk 273 of 307\nProcessing chunk 274 of 307\nProcessing chunk 275 of 307\nProcessing chunk 276 of 307\nProcessing chunk 277 of 307\nProcessing chunk 278 of 307\nProcessing chunk 279 of 307\nProcessing chunk 280 of 307\nProcessing chunk 281 of 307\nProcessing chunk 282 of 307\nProcessing chunk 283 of 307\nProcessing chunk 284 of 307\nProcessing chunk 285 of 307\nProcessing chunk 286 of 307\nProcessing chunk 287 of 307\nProcessing chunk 288 of 307\nProcessing chunk 289 of 307\nProcessing chunk 290 of 307\nProcessing chunk 291 of 307\nProcessing chunk 292 of 307\nProcessing chunk 293 of 307\nProcessing chunk 294 of 307\nProcessing chunk 295 of 307\nProcessing chunk 296 of 307\nProcessing chunk 297 of 307\nProcessing chunk 298 of 307\nProcessing chunk 299 of 307\nProcessing chunk 300 of 307\nProcessing chunk 301 of 307\nProcessing chunk 302 of 307\nProcessing chunk 303 of 307\nProcessing chunk 304 of 307\nProcessing chunk 305 of 307\nProcessing chunk 306 of 307\nProcessing chunk 307 of 307\n"
+        }
+      ],
+      "execution_count": 36,
+      "metadata": {
+        "gather": {
+          "logged": 1681954237026
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python38-azureml-pt-tf",
+      "language": "python",
+      "display_name": "Python 3.8 - Pytorch and Tensorflow"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.8.5",
+      "mimetype": "text/x-python",
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "pygments_lexer": "ipython3",
+      "nbconvert_exporter": "python",
+      "file_extension": ".py"
+    },
+    "microsoft": {
+      "ms_spell_check": {
+        "ms_spell_check_language": "en"
+      },
+      "host": {
+        "AzureML": {
+          "notebookHasBeenCompleted": true
+        }
+      }
+    },
+    "kernel_info": {
+      "name": "python38-azureml-pt-tf"
+    },
+    "nteract": {
+      "version": "nteract-front-end@1.0.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 2
+}

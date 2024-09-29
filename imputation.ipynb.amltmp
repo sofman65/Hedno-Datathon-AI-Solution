@@ -1,0 +1,194 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\r\n",
+        "df = pd.read_pickle(\"clustered_data.pkl\")\r\n",
+        "df.head(10)"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": "Exception ignored in: <function tqdm.__del__ at 0x7fe4b6fc8430>\nTraceback (most recent call last):\n  File \"/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/tqdm/std.py\", line 1145, in __del__\n    self.close()\n  File \"/anaconda/envs/azureml_py310_sdkv2/lib/python3.10/site-packages/tqdm/notebook.py\", line 283, in close\n    self.disp(bar_style='danger', check_delay=False)\nAttributeError: 'tqdm_notebook' object has no attribute 'disp'\n"
+        },
+        {
+          "output_type": "execute_result",
+          "execution_count": 10,
+          "data": {
+            "text/plain": "                                            ACCT_NBR  SUCCESSOR   \n0  000A31FE38C6F648845941B642E287FE0200000000004A...          1  \\\n1  000A31FE38C6F648845941B642E287FE0200000000004A...          2   \n2  000A31FE38C6F648845941B642E287FE0200000000004A...          2   \n3  000A31FE38C6F648845941B642E287FE02000000000050...          1   \n4  000A31FE38C6F648845941B642E287FE02000000000050...          1   \n5  000A31FE38C6F648845941B642E287FE0200000000005D...          1   \n6  000A31FE38C6F648845941B642E287FE0200000000007D...          1   \n7  000A31FE38C6F648845941B642E287FE0200000000007D...          2   \n8  000A31FE38C6F648845941B642E287FE0200000000008D...          5   \n9  000A31FE38C6F648845941B642E287FE0200000000008D...          5   \n\n                                        MS_METER_NBR BS_RATE   \n0  000A31FE38C6F648845941B642E287FE020000007FDE53...      21  \\\n1  000A31FE38C6F648845941B642E287FE0200000040D2A7...      21   \n2  000A31FE38C6F648845941B642E287FE020000007FDE53...      21   \n3  000A31FE38C6F648845941B642E287FE0200000099C3B6...      10   \n4  000A31FE38C6F648845941B642E287FE0200000099C3B6...      12   \n5  000A31FE38C6F648845941B642E287FE0200000044E98C...      21   \n6  000A31FE38C6F648845941B642E287FE020000003A5267...      10   \n7  000A31FE38C6F648845941B642E287FE020000003A5267...      10   \n8  000A31FE38C6F648845941B642E287FE0200000096ED89...      21   \n9  000A31FE38C6F648845941B642E287FE0200000096ED89...      21   \n\n                                         time_series  label  XRHSH VOLTAGE   \n0  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    2.0     LOW  \\\n1  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    2.0     LOW   \n2  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    2.0     LOW   \n3  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    1.0     LOW   \n4  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    1.0     LOW   \n5  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    8.0     LOW   \n6  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    1.0     LOW   \n7  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    1.0     LOW   \n8  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    2.0     LOW   \n9  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...      0    2.0     LOW   \n\n   PARNO  CONTRACT_CAPACITY  ACCT_CONTROL        ACCT_WGS84_X   \n0    0.0               12.0           0.0  53,422551543686701  \\\n1    0.0               12.0           0.0  53,422551543686701   \n2    0.0               12.0           0.0  53,422551543686701   \n3    0.0               12.0           0.0  53,424082335108444   \n4    0.0               12.0           0.0  53,424082335108444   \n5    0.0               12.0           0.0   53,47015026955372   \n6    0.0               12.0           0.0  53,440751323514696   \n7    0.0               12.0           0.0  53,440751323514696   \n8    2.0               25.0           0.0  53,407108521588633   \n9    2.0               25.0           0.0  53,407108521588633   \n\n         ACCT_WGS84_Y SUPPLIER SUPPLIER_TO REQUEST_TYPE COMPL_REQUEST_STATUS   \n0  19,592757873078753        Δ           Δ                                    \\\n1  19,592757873078753        Δ                                                 \n2  19,592757873078753        Δ                                                 \n3  19,570173536681853        Δ                                                 \n4  19,570173536681853        Δ                                                 \n5  19,592456022809351        Δ                                                 \n6  19,598127268868772        Δ           Ω   reprChange                compl   \n7  19,598127268868772        Ω                                                 \n8  19,569743639932696        Δ                                         compl   \n9  19,569743639932696        Δ                                                 \n\n   cluster_labels  \n0              -1  \n1              -1  \n2              -1  \n3              65  \n4              65  \n5             317  \n6             367  \n7             367  \n8             110  \n9             110  ",
+            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>ACCT_NBR</th>\n      <th>SUCCESSOR</th>\n      <th>MS_METER_NBR</th>\n      <th>BS_RATE</th>\n      <th>time_series</th>\n      <th>label</th>\n      <th>XRHSH</th>\n      <th>VOLTAGE</th>\n      <th>PARNO</th>\n      <th>CONTRACT_CAPACITY</th>\n      <th>ACCT_CONTROL</th>\n      <th>ACCT_WGS84_X</th>\n      <th>ACCT_WGS84_Y</th>\n      <th>SUPPLIER</th>\n      <th>SUPPLIER_TO</th>\n      <th>REQUEST_TYPE</th>\n      <th>COMPL_REQUEST_STATUS</th>\n      <th>cluster_labels</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>000A31FE38C6F648845941B642E287FE0200000000004A...</td>\n      <td>1</td>\n      <td>000A31FE38C6F648845941B642E287FE020000007FDE53...</td>\n      <td>21</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>2.0</td>\n      <td>LOW</td>\n      <td>0.0</td>\n      <td>12.0</td>\n      <td>0.0</td>\n      <td>53,422551543686701</td>\n      <td>19,592757873078753</td>\n      <td>Δ</td>\n      <td>Δ</td>\n      <td></td>\n      <td></td>\n      <td>-1</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>000A31FE38C6F648845941B642E287FE0200000000004A...</td>\n      <td>2</td>\n      <td>000A31FE38C6F648845941B642E287FE0200000040D2A7...</td>\n      <td>21</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>2.0</td>\n      <td>LOW</td>\n      <td>0.0</td>\n      <td>12.0</td>\n      <td>0.0</td>\n      <td>53,422551543686701</td>\n      <td>19,592757873078753</td>\n      <td>Δ</td>\n      <td></td>\n      <td></td>\n      <td></td>\n      <td>-1</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>000A31FE38C6F648845941B642E287FE0200000000004A...</td>\n      <td>2</td>\n      <td>000A31FE38C6F648845941B642E287FE020000007FDE53...</td>\n      <td>21</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>2.0</td>\n      <td>LOW</td>\n      <td>0.0</td>\n      <td>12.0</td>\n      <td>0.0</td>\n      <td>53,422551543686701</td>\n      <td>19,592757873078753</td>\n      <td>Δ</td>\n      <td></td>\n      <td></td>\n      <td></td>\n      <td>-1</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>000A31FE38C6F648845941B642E287FE02000000000050...</td>\n      <td>1</td>\n      <td>000A31FE38C6F648845941B642E287FE0200000099C3B6...</td>\n      <td>10</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>1.0</td>\n      <td>LOW</td>\n      <td>0.0</td>\n      <td>12.0</td>\n      <td>0.0</td>\n      <td>53,424082335108444</td>\n      <td>19,570173536681853</td>\n      <td>Δ</td>\n      <td></td>\n      <td></td>\n      <td></td>\n      <td>65</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>000A31FE38C6F648845941B642E287FE02000000000050...</td>\n      <td>1</td>\n      <td>000A31FE38C6F648845941B642E287FE0200000099C3B6...</td>\n      <td>12</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>1.0</td>\n      <td>LOW</td>\n      <td>0.0</td>\n      <td>12.0</td>\n      <td>0.0</td>\n      <td>53,424082335108444</td>\n      <td>19,570173536681853</td>\n      <td>Δ</td>\n      <td></td>\n      <td></td>\n      <td></td>\n      <td>65</td>\n    </tr>\n    <tr>\n      <th>5</th>\n      <td>000A31FE38C6F648845941B642E287FE0200000000005D...</td>\n      <td>1</td>\n      <td>000A31FE38C6F648845941B642E287FE0200000044E98C...</td>\n      <td>21</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>8.0</td>\n      <td>LOW</td>\n      <td>0.0</td>\n      <td>12.0</td>\n      <td>0.0</td>\n      <td>53,47015026955372</td>\n      <td>19,592456022809351</td>\n      <td>Δ</td>\n      <td></td>\n      <td></td>\n      <td></td>\n      <td>317</td>\n    </tr>\n    <tr>\n      <th>6</th>\n      <td>000A31FE38C6F648845941B642E287FE0200000000007D...</td>\n      <td>1</td>\n      <td>000A31FE38C6F648845941B642E287FE020000003A5267...</td>\n      <td>10</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>1.0</td>\n      <td>LOW</td>\n      <td>0.0</td>\n      <td>12.0</td>\n      <td>0.0</td>\n      <td>53,440751323514696</td>\n      <td>19,598127268868772</td>\n      <td>Δ</td>\n      <td>Ω</td>\n      <td>reprChange</td>\n      <td>compl</td>\n      <td>367</td>\n    </tr>\n    <tr>\n      <th>7</th>\n      <td>000A31FE38C6F648845941B642E287FE0200000000007D...</td>\n      <td>2</td>\n      <td>000A31FE38C6F648845941B642E287FE020000003A5267...</td>\n      <td>10</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>1.0</td>\n      <td>LOW</td>\n      <td>0.0</td>\n      <td>12.0</td>\n      <td>0.0</td>\n      <td>53,440751323514696</td>\n      <td>19,598127268868772</td>\n      <td>Ω</td>\n      <td></td>\n      <td></td>\n      <td></td>\n      <td>367</td>\n    </tr>\n    <tr>\n      <th>8</th>\n      <td>000A31FE38C6F648845941B642E287FE0200000000008D...</td>\n      <td>5</td>\n      <td>000A31FE38C6F648845941B642E287FE0200000096ED89...</td>\n      <td>21</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>2.0</td>\n      <td>LOW</td>\n      <td>2.0</td>\n      <td>25.0</td>\n      <td>0.0</td>\n      <td>53,407108521588633</td>\n      <td>19,569743639932696</td>\n      <td>Δ</td>\n      <td></td>\n      <td></td>\n      <td>compl</td>\n      <td>110</td>\n    </tr>\n    <tr>\n      <th>9</th>\n      <td>000A31FE38C6F648845941B642E287FE0200000000008D...</td>\n      <td>5</td>\n      <td>000A31FE38C6F648845941B642E287FE0200000096ED89...</td>\n      <td>21</td>\n      <td>[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ...</td>\n      <td>0</td>\n      <td>2.0</td>\n      <td>LOW</td>\n      <td>2.0</td>\n      <td>25.0</td>\n      <td>0.0</td>\n      <td>53,407108521588633</td>\n      <td>19,569743639932696</td>\n      <td>Δ</td>\n      <td></td>\n      <td></td>\n      <td></td>\n      <td>110</td>\n    </tr>\n  </tbody>\n</table>\n</div>"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 10,
+      "metadata": {
+        "gather": {
+          "logged": 1681955294021
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\r\n",
+        "import numpy as np\r\n",
+        "import pickle\r\n",
+        "\r\n",
+        "class ImbDataProcessor:\r\n",
+        "    def __init__(self, imbData):\r\n",
+        "        self.imbData = imbData\r\n",
+        "        self.grouped = self.imbData.groupby(['BS_RATE', 'XRHSH', 'ACCT_CONTROL', 'SUPPLIER', 'VOLTAGE', 'cluster_labels'])\r\n",
+        "        self.group_averages = {}\r\n",
+        "        self.processed_data = None\r\n",
+        "\r\n",
+        "    @staticmethod\r\n",
+        "    def calculate_average(series):\r\n",
+        "        count_non_zeros = [0] * len(series.iloc[0])\r\n",
+        "        sum_values = [0] * len(series.iloc[0])\r\n",
+        "\r\n",
+        "        for time_series in series:\r\n",
+        "            for i, value in enumerate(time_series):\r\n",
+        "                if value != 0:\r\n",
+        "                    count_non_zeros[i] += 1\r\n",
+        "                    sum_values[i] += value\r\n",
+        "\r\n",
+        "        return [sum_val / count if count > 0 else 0 for sum_val, count in zip(sum_values, count_non_zeros)]\r\n",
+        "\r\n",
+        "    def process(self):\r\n",
+        "        for name, group in list(self.grouped):\r\n",
+        "            avg_time_series = self.calculate_average(group['time_series'])\r\n",
+        "            self.group_averages[name] = avg_time_series\r\n",
+        "            for idx in group.index:\r\n",
+        "                self.imbData.at[idx, 'time_series'] = [self.imbData.at[idx, 'time_series'][i] if self.imbData.at[idx, 'time_series'][i] != 0 else avg_time_series[i] for i in range(len(self.imbData.at[idx, 'time_series']))]\r\n",
+        "\r\n",
+        "        self.processed_data = self.imbData.copy()\r\n",
+        "\r\n",
+        "    def get_processed_data(self):\r\n",
+        "        return self.processed_data\r\n",
+        "\r\n",
+        "    def impute_new_data(self, new_data):\r\n",
+        "        new_data = new_data.copy()\r\n",
+        "        key = tuple(new_data[col] for col in ['BS_RATE', 'XRHSH', 'ACCT_CONTROL', 'SUPPLIER', 'VOLTAGE', 'cluster_labels'])\r\n",
+        "\r\n",
+        "        if key in self.group_averages:\r\n",
+        "            avg_time_series = self.group_averages[key]\r\n",
+        "            new_data['time_series'] = [new_data['time_series'][i] if new_data['time_series'][i] != 0 else avg_time_series[i] for i in range(len(new_data['time_series']))]\r\n",
+        "        else:\r\n",
+        "            print(f\"Warning: Group {key} not found. No imputation performed.\")\r\n",
+        "\r\n",
+        "        return new_data\r\n",
+        "\r\n",
+        "    def save(self, file_path):\r\n",
+        "        with open(file_path, 'wb') as f:\r\n",
+        "            pickle.dump(self, f)\r\n",
+        "\r\n",
+        "    @classmethod\r\n",
+        "    def load(cls, file_path):\r\n",
+        "        with open(file_path, 'rb') as f:\r\n",
+        "            return pickle.load(f)\r\n"
+      ],
+      "outputs": [],
+      "execution_count": 12,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681955361924
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "processor = ImbDataProcessor(df)\r\n",
+        "processor.process()\r\n",
+        "processed_data = processor.get_processed_data()\r\n",
+        "\r\n",
+        "processed_data.to_pickle(\"imputated_clustered_data.pkl\")\r\n",
+        "\r\n",
+        "# Save the processor instance\r\n",
+        "processor.save('Models/processor.pkl')\r\n"
+      ],
+      "outputs": [],
+      "execution_count": 13,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1681956170166
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python310-sdkv2",
+      "language": "python",
+      "display_name": "Python 3.10 - SDK v2"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.10.10",
+      "mimetype": "text/x-python",
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "pygments_lexer": "ipython3",
+      "nbconvert_exporter": "python",
+      "file_extension": ".py"
+    },
+    "microsoft": {
+      "ms_spell_check": {
+        "ms_spell_check_language": "en"
+      },
+      "host": {
+        "AzureML": {
+          "notebookHasBeenCompleted": true
+        }
+      }
+    },
+    "kernel_info": {
+      "name": "python310-sdkv2"
+    },
+    "nteract": {
+      "version": "nteract-front-end@1.0.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 2
+}

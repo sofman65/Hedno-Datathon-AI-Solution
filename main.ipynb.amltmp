@@ -1,0 +1,546 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "%pip install hdbscan\r\n",
+        "%pip install catboost\r\n",
+        "%pip install lightgbm\r\n",
+        "%pip install xgboost\r\n",
+        "%pip install imblearn\r\n",
+        "%pip install dill"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "Requirement already satisfied: hdbscan in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (0.8.29)\nRequirement already satisfied: joblib>=1.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (1.2.0)\nRequirement already satisfied: numpy>=1.20 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (1.23.5)\nRequirement already satisfied: cython>=0.27 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (0.29.34)\nRequirement already satisfied: scipy>=1.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (1.10.1)\nRequirement already satisfied: scikit-learn>=0.20 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from hdbscan) (1.2.2)\nRequirement already satisfied: threadpoolctl>=2.0.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from scikit-learn>=0.20->hdbscan) (3.1.0)\nNote: you may need to restart the kernel to use updated packages.\nRequirement already satisfied: catboost in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (1.1.1)\nRequirement already satisfied: plotly in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from catboost) (5.14.1)\nRequirement already satisfied: numpy>=1.16.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from catboost) (1.23.5)\nRequirement already satisfied: graphviz in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from catboost) (0.20.1)\nRequirement already satisfied: six in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from catboost) (1.16.0)\nRequirement already satisfied: pandas>=0.24.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from catboost) (2.0.0)\nRequirement already satisfied: scipy in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from catboost) (1.10.1)\nRequirement already satisfied: matplotlib in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from catboost) (3.7.1)\nRequirement already satisfied: python-dateutil>=2.8.2 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from pandas>=0.24.0->catboost) (2.8.2)\nRequirement already satisfied: tzdata>=2022.1 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from pandas>=0.24.0->catboost) (2023.3)\nRequirement already satisfied: pytz>=2020.1 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from pandas>=0.24.0->catboost) (2022.7.1)\nRequirement already satisfied: importlib-resources>=3.2.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from matplotlib->catboost) (5.12.0)\nRequirement already satisfied: pillow>=6.2.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from matplotlib->catboost) (9.5.0)\nRequirement already satisfied: contourpy>=1.0.1 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from matplotlib->catboost) (1.0.7)\nRequirement already satisfied: packaging>=20.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from matplotlib->catboost) (22.0)\nRequirement already satisfied: fonttools>=4.22.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from matplotlib->catboost) (4.39.3)\nRequirement already satisfied: pyparsing>=2.3.1 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from matplotlib->catboost) (3.0.9)\nRequirement already satisfied: kiwisolver>=1.0.1 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from matplotlib->catboost) (1.4.4)\nRequirement already satisfied: cycler>=0.10 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from matplotlib->catboost) (0.11.0)\nRequirement already satisfied: tenacity>=6.2.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from plotly->catboost) (8.2.2)\nRequirement already satisfied: zipp>=3.1.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from importlib-resources>=3.2.0->matplotlib->catboost) (3.15.0)\nNote: you may need to restart the kernel to use updated packages.\nRequirement already satisfied: lightgbm in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (3.3.5)\nRequirement already satisfied: scipy in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from lightgbm) (1.10.1)\nRequirement already satisfied: numpy in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from lightgbm) (1.23.5)\nRequirement already satisfied: wheel in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from lightgbm) (0.37.1)\nRequirement already satisfied: scikit-learn!=0.22.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from lightgbm) (1.2.2)\nRequirement already satisfied: threadpoolctl>=2.0.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from scikit-learn!=0.22.0->lightgbm) (3.1.0)\nRequirement already satisfied: joblib>=1.1.1 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from scikit-learn!=0.22.0->lightgbm) (1.2.0)\nNote: you may need to restart the kernel to use updated packages.\nRequirement already satisfied: xgboost in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (1.7.5)\nRequirement already satisfied: scipy in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from xgboost) (1.10.1)\nRequirement already satisfied: numpy in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from xgboost) (1.23.5)\nNote: you may need to restart the kernel to use updated packages.\nRequirement already satisfied: imblearn in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (0.0)\nRequirement already satisfied: imbalanced-learn in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from imblearn) (0.10.1)\nRequirement already satisfied: scipy>=1.3.2 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from imbalanced-learn->imblearn) (1.10.1)\nRequirement already satisfied: numpy>=1.17.3 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from imbalanced-learn->imblearn) (1.23.5)\nRequirement already satisfied: scikit-learn>=1.0.2 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from imbalanced-learn->imblearn) (1.2.2)\nRequirement already satisfied: joblib>=1.1.1 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from imbalanced-learn->imblearn) (1.2.0)\nRequirement already satisfied: threadpoolctl>=2.0.0 in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (from imbalanced-learn->imblearn) (3.1.0)\nNote: you may need to restart the kernel to use updated packages.\nRequirement already satisfied: dill in /anaconda/envs/azureml_py38_PT_TF/lib/python3.8/site-packages (0.3.6)\nNote: you may need to restart the kernel to use updated packages.\n"
+        }
+      ],
+      "execution_count": 1,
+      "metadata": {}
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\r\n",
+        "import numpy as np\r\n",
+        "from typing import Tuple\r\n",
+        "from Agent.Utils.GeoClustering import GeoClustering\r\n",
+        "from Agent.Utils.Debug import print_caller_info\r\n",
+        "\r\n",
+        "def geocluster(df: pd.DataFrame) -> Tuple[GeoClustering, pd.DataFrame]:\r\n",
+        "\r\n",
+        "    df_geo = pd.DataFrame()\r\n",
+        "\r\n",
+        "    # Replace commas with decimal points in the 'ACCT_WGS84_X' and 'ACCT_WGS84_Y' columns\r\n",
+        "    df_geo['ACCT_WGS84_X'] = df['ACCT_WGS84_X'].str.replace(',', '.')\r\n",
+        "    df_geo['ACCT_WGS84_Y'] = df['ACCT_WGS84_Y'].str.replace(',', '.')\r\n",
+        "\r\n",
+        "    df_geo = df_geo.fillna(0)\r\n",
+        "\r\n",
+        "    # Convert the columns to float data type\r\n",
+        "    df_geo = df_geo.astype({\"ACCT_WGS84_X\": \"float32\", \"ACCT_WGS84_Y\": \"float32\"})\r\n",
+        "    \r\n",
+        "    # Instantiate GeoClustering with the clustered_data\r\n",
+        "    geo_clustering = GeoClustering(df_geo)\r\n",
+        "\r\n",
+        "    geo_data = geo_clustering.cluster(chunk_size=5000)\r\n",
+        "\r\n",
+        "    return geo_clustering, geo_data\r\n",
+        "\r\n",
+        "def geocluster_test(df: pd.DataFrame, geo_clustering) -> np.array:\r\n",
+        "\r\n",
+        "    df_geo = pd.DataFrame()\r\n",
+        "\r\n",
+        "    # Replace commas with decimal points in the 'ACCT_WGS84_X' and 'ACCT_WGS84_Y' columns\r\n",
+        "    df_geo['ACCT_WGS84_X'] = df['ACCT_WGS84_X'].str.replace(',', '.')\r\n",
+        "    df_geo['ACCT_WGS84_Y'] = df['ACCT_WGS84_Y'].str.replace(',', '.')\r\n",
+        "\r\n",
+        "    df_geo = df_geo.fillna(0)\r\n",
+        "\r\n",
+        "    # Convert the columns to float data type\r\n",
+        "    df_geo = df_geo.astype({\"ACCT_WGS84_X\": \"float32\", \"ACCT_WGS84_Y\": \"float32\"})\r\n",
+        "    \r\n",
+        "    geo_data = geo_clustering.predict(df_geo)\r\n",
+        "\r\n",
+        "    return geo_data"
+      ],
+      "outputs": [],
+      "execution_count": 2,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682074325372
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from typing import Tuple\r\n",
+        "from Agent.Utils.Imputation import ImbDataProcessor\r\n",
+        "\r\n",
+        "def imputation(df: pd.DataFrame) -> Tuple[ImbDataProcessor, pd.DataFrame]:\r\n",
+        "\r\n",
+        "    processor = ImbDataProcessor(df)\r\n",
+        "    processor.process()\r\n",
+        "    processed_data = processor.get_processed_data()\r\n",
+        "\r\n",
+        "    return processor, processed_data\r\n",
+        "\r\n",
+        "def imputation_test(df: pd.DataFrame, processor: ImbDataProcessor) -> pd.DataFrame:\r\n",
+        "\r\n",
+        "    new_data = processor.impute_new_data(df)\r\n",
+        "    return new_data"
+      ],
+      "outputs": [],
+      "execution_count": 3,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682074325653
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def one_hot_encoding(df: pd.DataFrame) -> pd.DataFrame:\r\n",
+        "\r\n",
+        "    df['cluster_labels'] = df['cluster_labels'].astype('object')\r\n",
+        "    df['XRHSH'] = df['XRHSH'].astype('object')\r\n",
+        "    df['PARNO'] = df['PARNO'].astype('object')\r\n",
+        "    df['CONTRACT_CAPACITY'] = df['CONTRACT_CAPACITY'].astype('object')\r\n",
+        "    df['ACCT_CONTROL'] = df['ACCT_CONTROL'].astype('object')\r\n",
+        "    categorical_columns = df.select_dtypes(include=['object', 'category']).columns\r\n",
+        "\r\n",
+        "    one_hot_encoded_data = pd.get_dummies(df, columns=categorical_columns)\r\n",
+        "    return one_hot_encoded_data"
+      ],
+      "outputs": [],
+      "execution_count": 4,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682074325878
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def time_series_unpack(df: pd.DataFrame) -> pd.DataFrame:\r\n",
+        "    \r\n",
+        "    # Find the maximum length of time_series\r\n",
+        "    max_length = df['time_series'].apply(len).max()\r\n",
+        "\r\n",
+        "    # Create new columns and fill them with the values from time_series\r\n",
+        "    for i in range(max_length):\r\n",
+        "        column_name = f'measurement_{i}'\r\n",
+        "        df[column_name] = df['time_series'].apply(lambda x: x[i] if i < len(x) else None)\r\n",
+        "\r\n",
+        "    return df"
+      ],
+      "outputs": [],
+      "execution_count": 5,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682074326103
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\r\n",
+        "from typing import Tuple\r\n",
+        "from Agent.Sensors.Catboost import CatBoostAnomalyDetector\r\n",
+        "from Agent.Sensors.LightGBM import LightGBMAnomalyDetector\r\n",
+        "from Agent.Sensors.XGBoost import XGBoostAnomalyDetector\r\n",
+        "from Agent.Sensors.RandomForest import RandomForestAnomalyDetector\r\n",
+        "import numpy as np\r\n",
+        "import pickle\r\n",
+        "\r\n",
+        "def sensors(X_detectors_train: pd.DataFrame, X_agent_train: pd.DataFrame, y_detectors_train: pd.DataFrame, y_agent_train: pd.DataFrame) -> Tuple[dict, pd.DataFrame]:\r\n",
+        "\r\n",
+        "    #  (Number of outliers / Total number of data points)\r\n",
+        "    outlier_fraction = (len(y_detectors_train[y_detectors_train == 1]) / X_detectors_train.shape[0])\r\n",
+        "\r\n",
+        "    # Class importance weights\r\n",
+        "    weight_minority = 0.7\r\n",
+        "    weight_majority = 0.3\r\n",
+        "\r\n",
+        "    # Calculate class weights for each sample\r\n",
+        "    sample_weights = np.array([weight_minority if y == 1 else weight_majority for y in y_detectors_train])\r\n",
+        "\r\n",
+        "    print_caller_info(sample_weights.shape)\r\n",
+        "    print_caller_info(y_agent_train.shape)\r\n",
+        "\r\n",
+        "    # Instantiate the detectors\r\n",
+        "    detectors = {\r\n",
+        "        \"RandomForest\": RandomForestAnomalyDetector(max_depth=25, random_state=0, outlier_fraction=outlier_fraction, class_weight={0: weight_majority, 1: weight_minority}, sample_weights=sample_weights),\r\n",
+        "        \"XGBoost\": XGBoostAnomalyDetector(outlier_fraction=outlier_fraction, class_weight=sample_weights, sample_weights=sample_weights),\r\n",
+        "        \"CatBoost\": CatBoostAnomalyDetector(outlier_fraction=outlier_fraction, class_weight=[weight_majority, weight_minority], sample_weights=sample_weights),\r\n",
+        "        \"LightGBM\": LightGBMAnomalyDetector(outlier_fraction=outlier_fraction, class_weight={0: weight_majority, 1: weight_minority}, sample_weights=sample_weights),\r\n",
+        "    }\r\n",
+        "\r\n",
+        "    # Train the detectors and store their predict_proba results in a new DataFrame called sensors_df\r\n",
+        "    sensors_df = pd.DataFrame()\r\n",
+        "    for name, detector in detectors.items():\r\n",
+        "        print(\"Current detector: {}\".format(name))\r\n",
+        "        detector.fit(X_detectors_train, y_detectors_train)\r\n",
+        "        detector.evaluate(X_agent_train, y_agent_train)\r\n",
+        "        sensors_df[name] = detector.proba\r\n",
+        "        print(\"\")\r\n",
+        "\r\n",
+        "    return detectors, sensors_df\r\n",
+        "\r\n",
+        "def sensors_test(X_test: pd.DataFrame, detectors: dict) -> pd.DataFrame:\r\n",
+        "\r\n",
+        "    # Class importance weights\r\n",
+        "    weight_minority = 0.7\r\n",
+        "    weight_majority = 0.3\r\n",
+        "\r\n",
+        "    sensors_test = pd.DataFrame()\r\n",
+        "    for name, detector in detectors.items():\r\n",
+        "        print(\"Current detector: {}\".format(name))\r\n",
+        "        detector.predict_proba(X_test)\r\n",
+        "        sensors_test[name] = detector.proba\r\n",
+        "        print(\"\")\r\n",
+        "\r\n",
+        "    return sensors_test\r\n",
+        "\r\n"
+      ],
+      "outputs": [],
+      "execution_count": 6,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682074326322
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\r\n",
+        "from Agent.dqn_binary_classification_memory_optimized import BinaryClassificationEnv, DoubleDQN\r\n",
+        "from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, fbeta_score\r\n",
+        "from sklearn.model_selection import train_test_split\r\n",
+        "\r\n",
+        "def dqn(X_train: pd.DataFrame, y_train: pd.DataFrame) -> DoubleDQN:\r\n",
+        "\r\n",
+        "    X_train = X_train.to_numpy()\r\n",
+        "    y_train = y_train.to_numpy()\r\n",
+        "\r\n",
+        "    num_features = X_train.shape[1]\r\n",
+        "\r\n",
+        "    # Initialize the environment and agent\r\n",
+        "    env = BinaryClassificationEnv(X_train, y_train)\r\n",
+        "    agent = DoubleDQN(state_space=num_features, action_space=2,\r\n",
+        "                learning_rate=0.01, discount_factor=0.3, buffer_size=100000)\r\n",
+        "\r\n",
+        "    # Set the total number of iterations for tqdm\r\n",
+        "    total_iterations = 100000\r\n",
+        "\r\n",
+        "    # Initialize tqdm with the total number of iterations\r\n",
+        "    for i in range(total_iterations):\r\n",
+        "\r\n",
+        "        action = np.random.randint(2)\r\n",
+        "        next_state, reward = env.step(action)\r\n",
+        "        agent.store_transition(env.data[env.current_state],\r\n",
+        "                            action, reward, next_state, False)\r\n",
+        "        \r\n",
+        "    # Train the agent\r\n",
+        "    agent.train(batch_size=64, num_episodes=750)\r\n",
+        "\r\n",
+        "    return agent\r\n",
+        "\r\n",
+        "\r\n",
+        "def dqn_test(X_test: pd.DataFrame, agent: DoubleDQN) -> dict:\r\n",
+        "\r\n",
+        "    X_test = X_test.to_numpy()\r\n",
+        "\r\n",
+        "    # Evaluate the agent on new data\r\n",
+        "    test_cases = len(X_test)\r\n",
+        "\r\n",
+        "    q_values = agent.predict(X_test)\r\n",
+        "\r\n",
+        "    actions = []\r\n",
+        "    for i in range(test_cases):\r\n",
+        "\r\n",
+        "        actions.append(np.argmax(q_values[i]))\r\n",
+        "\r\n",
+        "    return q_values"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": "2023-04-21 10:52:06.491898: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.\nTo enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.\n2023-04-21 10:52:07.357995: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT\n"
+        }
+      ],
+      "execution_count": 7,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682074327441
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pickle\r\n",
+        "from sklearn.model_selection import train_test_split\r\n",
+        "\r\n",
+        "def custom_function(X_train, y_train, X_test, agent_split_size, random_state):\r\n",
+        "    \r\n",
+        "    # Train split\r\n",
+        "    print(\"[*] Training Process:\")\r\n",
+        "\r\n",
+        "    print(\"[-] Entering geocluster\")\r\n",
+        "    geo_clustering, geo_data = geocluster(X_train)\r\n",
+        "    X_train[\"cluster_labels\"] = geo_data[\"cluster_labels\"]\r\n",
+        "    print(\"[-] Exiting geocluster\")\r\n",
+        "\r\n",
+        "    print(\"[-] Entering preprocessing\")\r\n",
+        "    processor, processed_data = imputation(X_train)\r\n",
+        "    processed_data = time_series_unpack(processed_data)\r\n",
+        "    processed_data = processed_data.drop(['time_series', 'ACCT_NBR', 'SUCCESSOR', 'MS_METER_NBR','ACCT_WGS84_X', 'ACCT_WGS84_Y'], axis=1)\r\n",
+        "    one_hot_encoded_data = one_hot_encoding(processed_data)\r\n",
+        "    print(\"[-] Exiting preprocessing\")\r\n",
+        "\r\n",
+        "    X_detectors_train, X_agent_train, y_detectors_train, y_agent_train = train_test_split(\r\n",
+        "        one_hot_encoded_data, y_train, test_size=agent_split_size, random_state=random_state, stratify=y_train\r\n",
+        "    )\r\n",
+        "\r\n",
+        "    print(\"[-] Entering sensors\")\r\n",
+        "    detectors, sensors_df = sensors(X_detectors_train, X_agent_train, y_detectors_train, y_agent_train)\r\n",
+        "    print(\"[-] Exiting sensors\")\r\n",
+        "\r\n",
+        "    X_agent_train = X_agent_train.reset_index(drop=True)\r\n",
+        "    sensors_df = sensors_df.reset_index(drop=True)\r\n",
+        "    X_agent_train = pd.concat([X_agent_train, sensors_df], axis=1)\r\n",
+        "\r\n",
+        "    print(\"[-] Entering agent\")\r\n",
+        "    agent = dqn(X_agent_train, y_agent_train)\r\n",
+        "    print(\"[-] Exiting agent\")\r\n",
+        "\r\n",
+        "    # Test split\r\n",
+        "    print(\"[*] Testing Process:\")\r\n",
+        "\r\n",
+        "    print(\"[-] Entering geocluster\")\r\n",
+        "    geo_test = geocluster_test(X_test, geo_clustering)\r\n",
+        "    X_test[\"cluster_labels\"] = geo_test\r\n",
+        "    print(\"[-] Exiting geocluster\")\r\n",
+        "\r\n",
+        "    print(\"[-] Entering preprocessing\")\r\n",
+        "    processed_test = imputation_test(X_test, processor)\r\n",
+        "    processed_test = time_series_unpack(processed_test)\r\n",
+        "    processed_test = processed_test.drop(['time_series', 'ACCT_NBR', 'SUCCESSOR', 'MS_METER_NBR','ACCT_WGS84_X', 'ACCT_WGS84_Y'], axis=1)\r\n",
+        "    one_hot_encoded_test = pd.get_dummies(processed_test)\r\n",
+        "    one_hot_encoded_test = one_hot_encoded_test.reindex(columns=one_hot_encoded_data.columns, fill_value=0)\r\n",
+        "    print(\"[-] Exiting preprocessing\")\r\n",
+        "\r\n",
+        "    print(\"[-] Entering sensors\")\r\n",
+        "    sensors_df_test = sensors_test(one_hot_encoded_test, detectors)\r\n",
+        "    print(\"[-] Exiting sensors\")\r\n",
+        "\r\n",
+        "    one_hot_encoded_test = one_hot_encoded_test.reset_index(drop=True)\r\n",
+        "    sensors_df_test = sensors_df_test.reset_index(drop=True)\r\n",
+        "    X_test = pd.concat([one_hot_encoded_test, sensors_df_test], axis=1)\r\n",
+        "\r\n",
+        "    print(\"[-] Entering agent\")\r\n",
+        "    q_values = dqn_test(X_test, agent)\r\n",
+        "    print(\"[-] Exiting agent\")\r\n",
+        "\r\n",
+        "    with open(\"q_values.pkl\", \"wb\") as f:\r\n",
+        "\r\n",
+        "        pickle.dump(q_values, f)\r\n"
+      ],
+      "outputs": [],
+      "execution_count": 8,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682074327659
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\r\n",
+        "from Agent.Utils.ModelRunner import ModelRunner\r\n",
+        "\r\n",
+        "# Load the dataset (replace 'your_dataset.csv' with your actual file)\r\n",
+        "data = pd.read_pickle('clean_data.pkl')\r\n",
+        "test = pd.read_pickle('clean_data_test.pkl')\r\n",
+        "\r\n",
+        "data = data.fillna(0)\r\n",
+        "X = data.drop([\"label\"], axis=1)\r\n",
+        "y = data[\"label\"]\r\n",
+        "\r\n",
+        "model_runner = ModelRunner(custom_function, X, y, random_states=[80])\r\n",
+        "model_runner.run(test)"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": "[*] Training Process:\n[-] Entering geocluster\n[-] Exiting geocluster\n[-] Entering preprocessing\n[-] Exiting preprocessing\n[-] Entering sensors\nVariable: (765656,)\nFile: /tmp/ipykernel_170065/1327681358.py\nLine: 22\nClass: \nMethod: sensors\nVariable: (765657,)\nFile: /tmp/ipykernel_170065/1327681358.py\nLine: 23\nClass: \nMethod: sensors\nCurrent detector: RandomForest\n\nCurrent detector: XGBoost\n\nCurrent detector: CatBoost\n\nCurrent detector: LightGBM\n\n[-] Exiting sensors\n[-] Entering agent\n[-] Exiting agent\n[*] Testing Process:\n[-] Entering geocluster\n[-] Exiting geocluster\n[-] Entering preprocessing\nWarning: Group (10, 1.0, 0.0, 'Δ', 'LOW', 383) not found. No imputation performed.\n[-] Exiting preprocessing\n[-] Entering sensors\nCurrent detector: RandomForest\n\nCurrent detector: XGBoost\n\nCurrent detector: CatBoost\n\nCurrent detector: LightGBM\n\n[-] Exiting sensors\n[-] Entering agent\n[-] Exiting agent\n"
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": "2023-04-21 11:22:48.577200: E tensorflow/compiler/xla/stream_executor/cuda/cuda_driver.cc:266] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected\n"
+        }
+      ],
+      "execution_count": 9,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682079103308
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "q_values_1 = pd.DataFrame(pd.read_pickle(\"q_values.pkl\"))\r\n",
+        "\r\n",
+        "q_values_1.describe()\r\n"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 14,
+          "data": {
+            "text/plain": "                   0              1\ncount  149520.000000  149520.000000\nmean        0.000031       0.000026\nstd         0.000018       0.000015\nmin         0.000002       0.000002\n25%         0.000016       0.000014\n50%         0.000027       0.000024\n75%         0.000043       0.000036\nmax         0.000152       0.000111",
+            "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>0</th>\n      <th>1</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>count</th>\n      <td>149520.000000</td>\n      <td>149520.000000</td>\n    </tr>\n    <tr>\n      <th>mean</th>\n      <td>0.000031</td>\n      <td>0.000026</td>\n    </tr>\n    <tr>\n      <th>std</th>\n      <td>0.000018</td>\n      <td>0.000015</td>\n    </tr>\n    <tr>\n      <th>min</th>\n      <td>0.000002</td>\n      <td>0.000002</td>\n    </tr>\n    <tr>\n      <th>25%</th>\n      <td>0.000016</td>\n      <td>0.000014</td>\n    </tr>\n    <tr>\n      <th>50%</th>\n      <td>0.000027</td>\n      <td>0.000024</td>\n    </tr>\n    <tr>\n      <th>75%</th>\n      <td>0.000043</td>\n      <td>0.000036</td>\n    </tr>\n    <tr>\n      <th>max</th>\n      <td>0.000152</td>\n      <td>0.000111</td>\n    </tr>\n  </tbody>\n</table>\n</div>"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 14,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1682079497411
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python38-azureml-pt-tf",
+      "language": "python",
+      "display_name": "Python 3.8 - Pytorch and Tensorflow"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.8.5",
+      "mimetype": "text/x-python",
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "pygments_lexer": "ipython3",
+      "nbconvert_exporter": "python",
+      "file_extension": ".py"
+    },
+    "microsoft": {
+      "ms_spell_check": {
+        "ms_spell_check_language": "en"
+      },
+      "host": {
+        "AzureML": {
+          "notebookHasBeenCompleted": true
+        }
+      }
+    },
+    "kernel_info": {
+      "name": "python38-azureml-pt-tf"
+    },
+    "nteract": {
+      "version": "nteract-front-end@1.0.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 2
+}
