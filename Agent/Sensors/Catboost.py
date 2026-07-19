@@ -30,9 +30,24 @@ class CatBoostAnomalyDetector(BaseEstimator, ClassifierMixin):
         return (self.proba > threshold).astype(int)
 
     def evaluate(self, X, y):
+        self.y_pred = self.predict(X)
+        # Use stored sample weights only when they match the evaluated set
+        sw = self.sample_weights if self.sample_weights is not None and len(self.sample_weights) == len(y) else None
+        self.accuracy = accuracy_score(y, self.y_pred, sample_weight=sw)
+        self.precision = precision_score(y, self.y_pred, sample_weight=sw)
+        self.recall = recall_score(y, self.y_pred, sample_weight=sw)
+        self.f1 = f1_score(y, self.y_pred, sample_weight=sw)
+        self.f2 = fbeta_score(y, self.y_pred, beta=2, sample_weight=sw)
 
-        y_pred = self.predict(X)
-        
+        print(f"Accuracy (CatBoost): {self.accuracy:.4f}")
+        print(f"Precision (CatBoost): {self.precision:.4f}")
+        print(f"Recall (CatBoost): {self.recall:.4f}")
+        print(f"F1 score (CatBoost): {self.f1:.4f}")
+        print(f"F2 score (CatBoost): {self.f2:.4f}")
+
+        return self.accuracy, self.precision, self.recall, self.f1, self.f2
+
+
     def get_params(self, deep=True):
         return {"outlier_fraction": self.outlier_fraction}
 

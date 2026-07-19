@@ -1,129 +1,116 @@
-# HEDNO Datathon Project: Power Theft Detection
-
-## Overview
-
-This project was developed as part of the HEDNO (Hellenic Electricity Distribution Network Operator) Datathon. The primary objective was to address the critical issue of power theft in electricity distribution networks. The solution involves data preprocessing, imputation, clustering, and machine learning models to detect anomalies and potential power theft.
-
-## Project Structure
-
-The project is organized into several components, each responsible for different aspects of the solution:
-
-1. **Data Preprocessing and Imputation**
-2. **Clustering**
-3. **Machine Learning Models**
-4. **Evaluation and Metrics**
-
-## Notebooks
-
-### 1. `DQN.ipynb`
-
-This notebook implements a Double Deep Q-Network (DQN) for binary classification. It includes the following steps:
-
-- Importing necessary libraries
-- Initializing the environment and agent
-- Training the agent
-- Evaluating the agent on new data
-
-Relevant code snippet:
-
-
-### 2. `Imputation.ipynb`
-
-This notebook handles the imputation of missing data using the `ImbDataProcessor` class. It includes:
-
-- Loading the dataset
-- Defining the `ImbDataProcessor` class
-- Processing the data
-- Saving the processed data and the processor instance
-
-Relevant code snippet:
-
-
-### 3. `Sensor_Predictions.ipynb`
-
-This notebook focuses on data encoding, splitting, and evaluating different machine learning models. It includes:
-
-- Installing necessary libraries
-- Loading and preprocessing the dataset
-- Evaluating models like Random Forest, XGBoost, CatBoost, and LightGBM
-
-Relevant code snippet:
-
-
-### 4. `Main.ipynb`
-
-This notebook integrates various components of the project, including geoclustering and imputation. It includes:
-
-- Installing necessary libraries
-- Defining functions for geoclustering and imputation
-- Running the model on the dataset
-
-
-
-
-## Python Scripts
-
-### `Agent/Utils/Imputation.py`
-
-This script defines the `ImbDataProcessor` class, which is responsible for imputing missing data in the dataset. It includes methods for calculating averages, processing data, imputing new data, and saving/loading the processor.
-
-
-
-
-### `Agent/Utils/ModelRunner.py`
-
-This script defines the `ModelRunner` class, which is responsible for running the machine learning models on the dataset. It includes methods for splitting the data and executing the provided function on the train and test sets.
-
-
-
-
-### `Agent/Utils/GeoClustering.py`
-
-This script defines the `GeoClustering` class, which is responsible for clustering geographical data using the HDBSCAN algorithm. It includes methods for converting coordinates, clustering data, predicting new points, and saving/loading the model.
-
-
-
-
-### `Agent/Sensors/Stacking.py`
-
-This script defines the `StackingAnomalyDetector` class, which uses a stacking ensemble method for anomaly detection. It includes methods for fitting the model, predicting probabilities, making predictions, and evaluating the model.
-
-
-
-
-### `Agent/Sensors/lightgbm.py.amltmp`
-
-This script defines the `LightGBMAnomalyDetector` class, which uses the LightGBM algorithm for anomaly detection. It includes methods for fitting the model, predicting probabilities, making predictions, and evaluating the model.
-
-
-
-
-### `Agent/Sensors/xgboost.py.amltmp`
-
-This script defines additional methods for the `XGBoostAnomalyDetector` class, including getting and setting parameters.
-
-
-
-
-## How to Run
-
-1. **Clone the repository:**
-    ```sh
-    git clone <repository_url>
-    cd <repository_directory>
-    ```
-
-2. **Install the required packages:**
-    ```sh
-    pip install -r requirements.txt
-    ```
-
-3. **Run the notebooks:**
-    Open each notebook in Jupyter and run the cells sequentially.
-
-4. **Run the scripts:**
-    Execute the Python scripts as needed to preprocess data, run models, and evaluate results.
-
-## Conclusion
-
-This project provides a comprehensive solution to detect power theft in electricity distribution networks. By combining data preprocessing, imputation, clustering, and machine learning models, the solution aims to identify anomalies and potential theft effectively.
+# HEDNO Datathon — Power Theft Detection
+
+A machine-learning prototype built for the HEDNO (Hellenic Electricity Distribution
+Network Operator) Datathon. The task: given each customer account's consumption
+time series plus contract and geographic metadata, flag accounts likely to be
+involved in **power theft**, so field inspections can be prioritized.
+
+This is a highly **imbalanced binary classification** problem (~1% positive class)
+on roughly **1.5 million accounts**.
+
+> **Scope note.** This is a datathon prototype, not a production system. The
+> original data is not redistributable and is **not included** — see
+> [data/README.md](data/README.md) for the expected schema and a synthetic demo
+> generator that lets the pipeline run end-to-end as a smoke test.
+
+## Approach
+
+```
+raw accounts (~1.5M rows)
+   │
+   ├─ 1. Geospatial clustering ────── HDBSCAN (haversine metric) on WGS84 coords
+   │                                  → cluster_labels feature
+   ├─ 2. Missing-value imputation ─── zero readings replaced by the non-zero mean
+   │                                  of the account's peer group
+   │                                  (rate × usage × supplier × voltage × geo-cluster)
+   ├─ 3. Feature engineering ──────── time-series unpacked to measurement_i columns,
+   │                                  IDs dropped, categoricals one-hot encoded
+   ├─ 4. Detector ensemble ────────── RandomForest, XGBoost, CatBoost, LightGBM
+   │                                  with class weighting + percentile thresholding
+   └─ 5. Meta-learner (experimental)─ Double DQN over features + detector probabilities
+```
+
+The key domain insight is in step 2: a zero meter reading means a *missing* value,
+not zero consumption, so it is imputed from similar customers in the same
+geographic cluster — which is why clustering runs before imputation.
+
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `Main.ipynb` | End-to-end orchestration of the full pipeline |
+| `HDBSCAN.ipynb` | Step 1 — geospatial clustering (writes `clustered_data.pkl`) |
+| `Imputation.ipynb` | Step 2 — group-average imputation (writes `imputated_clustered_data.pkl`) |
+| `Sensor_Predictions.ipynb` | Steps 3–4 — encoding, train/test split, detector training and evaluation |
+| `DQN.ipynb` | Step 5 scratchpad — experimental, not standalone-runnable |
+| `Agent/Utils/GeoClustering.py` | `GeoClustering` — chunked HDBSCAN with haversine metric + `approximate_predict` for new points |
+| `Agent/Utils/Imputation.py` | `ImbDataProcessor` — group-conditional imputation, reusable on unseen data |
+| `Agent/Utils/ModelRunner.py` | Thin train/test driver used by `Main.ipynb` |
+| `Agent/Sensors/*.py` | sklearn-style anomaly detectors (RandomForest, XGBoost, CatBoost, LightGBM) plus extra ensembles explored (AdaBoost, Stacking, Majority Vote) |
+| `Agent/dqn_binary_classification_memory_optimized.py` | DQN / Double DQN with prioritized replay (experimental) |
+| `data/` | Data documentation + synthetic demo data generator |
+
+## Handling class imbalance
+
+- **Metrics:** precision, recall, F1 and **F2** (recall-weighted — missing a theft
+  costs more than a false alarm) are reported instead of relying on accuracy,
+  which is trivially ~0.98 here.
+- **Weighting:** minority/majority class weights (0.7 / 0.3) applied as class or
+  sample weights per detector.
+- **Thresholding:** the decision threshold is set from the observed outlier
+  fraction rather than the default 0.5.
+- **Splits:** all train/test splits are stratified on the label.
+
+## Results (original datathon run, 2023)
+
+Held-out 20% test split, ~1.5M-row dataset, sample-weighted metrics
+(recorded from the executed `Sensor_Predictions.ipynb`):
+
+| Model | Accuracy | Precision | Recall | F1 | F2 |
+|---|---|---|---|---|---|
+| **RandomForest** | 0.9872 | **0.7465** | **0.5580** | **0.6386** | **0.5876** |
+| CatBoost | 0.9857 | 0.7027 | 0.5032 | 0.5864 | 0.5335 |
+| XGBoost | 0.9813 | 0.5580 | 0.3511 | 0.4310 | 0.3792 |
+| LightGBM | 0.9810 | 0.5491 | 0.3429 | 0.4222 | 0.3707 |
+
+RandomForest was the strongest single detector. The Double DQN meta-learner did
+not produce useful results in the time available (its Q-values collapsed to
+near-uniform values) and is kept as an experimental exploration only.
+
+These numbers come from a single stratified split on the original (private)
+data; they are not reproducible from this repository alone and should be read as
+indicative, not benchmarked.
+
+## How to run
+
+```sh
+git clone <repository_url> && cd Hedno-Datathon-AI-Solution
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# No access to the original data? Generate a synthetic smoke-test set:
+python data/make_demo_data.py
+```
+
+Then run the notebooks from the repository root, in order:
+
+1. `HDBSCAN.ipynb` — expects `clean_data.pkl`, writes `clustered_data.pkl`
+2. `Imputation.ipynb` — writes `imputated_clustered_data.pkl` (create a `Models/` directory first)
+3. `Sensor_Predictions.ipynb` — trains and evaluates the four detectors
+4. `Main.ipynb` — full pipeline including the experimental DQN stage (optional; requires TensorFlow, slow)
+
+## Known limitations / next steps
+
+Honest list of what a production version would need to address:
+
+- **Per-chunk clustering:** HDBSCAN is refit per 5,000-row chunk for memory
+  reasons, so cluster labels are not globally consistent across chunks and
+  `approximate_predict` only reflects the last chunk's model. Fix: fit once on a
+  sample, or use a scalable global clustering.
+- **Batch-dependent threshold:** detectors derive their percentile threshold from
+  the batch being scored; a deployable system needs a threshold frozen on
+  validation data.
+- **Single split:** no cross-validation, PR-AUC, calibration, or confusion-matrix
+  analysis.
+- **Pickle-based I/O** and no experiment tracking, tests, or serving layer.
+- The DQN stage would need reward shaping and evaluation work before it adds value.

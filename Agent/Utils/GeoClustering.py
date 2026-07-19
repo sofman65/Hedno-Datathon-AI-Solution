@@ -1,3 +1,5 @@
+import pickle
+
 import numpy as np
 from hdbscan import HDBSCAN
 from hdbscan import approximate_predict
@@ -14,9 +16,10 @@ class GeoClustering:
         # Convert coordinates to radians
         rad_coords = self.deg2rad(self.data)
 
-        # Divide the dataset into smaller chunks
+        # Divide the dataset into smaller chunks (iloc keeps the DataFrame index,
+        # which np.array_split would drop on modern pandas/numpy)
         num_chunks = int(np.ceil(rad_coords.shape[0] / chunk_size))
-        chunked_data = np.array_split(rad_coords, num_chunks)
+        chunked_data = [rad_coords.iloc[i * chunk_size:(i + 1) * chunk_size] for i in range(num_chunks)]
 
         # Initialize a new column for cluster labels
         self.data['cluster_labels'] = -1

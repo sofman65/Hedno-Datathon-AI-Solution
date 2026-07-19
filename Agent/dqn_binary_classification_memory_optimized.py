@@ -7,12 +7,12 @@ import os
 import random
 import numpy as np
 from collections import deque
-from keras.models import Sequential, Model
-from keras.layers import Input, Dense, LSTM, Flatten
-from keras.optimizers import Adam
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Input, Dense, LSTM, Flatten
+from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
-from keras.models import load_model
-import keras.backend as K
+from tensorflow.keras.models import load_model
+import tensorflow.keras.backend as K
 import dill
 import gc
 
@@ -236,7 +236,7 @@ class DQN:
             actions = np.array(actions, dtype=np.int64)
             rewards = np.array(rewards, dtype=np.float32)
             next_states = np.array(next_states, dtype=np.float32)
-            dones = np.array(dones, dtype=np.bool)
+            dones = np.array(dones, dtype=bool)
             weights = np.array(weights, dtype=np.float32)
 
             current_q_values = self.policy_net.predict(states, verbose=0)
@@ -447,7 +447,7 @@ class DoubleDQN:
             actions = np.array(actions, dtype=np.int64)
             rewards = np.array(rewards, dtype=np.float32)
             next_states = np.array(next_states, dtype=np.float32)
-            dones = np.array(dones, dtype=np.bool)
+            dones = np.array(dones, dtype=bool)
             weights = np.array(weights, dtype=np.float32)
 
             # Calculate the target Q-values using the Bellman equation

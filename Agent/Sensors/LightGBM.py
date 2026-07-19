@@ -30,6 +30,21 @@ class LightGBMAnomalyDetector(BaseEstimator, ClassifierMixin):
 
     def evaluate(self, X_test, y_test):
         self.y_pred = self.predict(X_test)
+        # Use stored sample weights only when they match the evaluated set
+        sw = self.sample_weights if self.sample_weights is not None and len(self.sample_weights) == len(y_test) else None
+        self.accuracy = accuracy_score(y_test, self.y_pred, sample_weight=sw)
+        self.precision = precision_score(y_test, self.y_pred, sample_weight=sw)
+        self.recall = recall_score(y_test, self.y_pred, sample_weight=sw)
+        self.f1 = f1_score(y_test, self.y_pred, sample_weight=sw)
+        self.f2 = fbeta_score(y_test, self.y_pred, beta=2, sample_weight=sw)
+
+        print(f"Accuracy (LGBM): {self.accuracy:.4f}")
+        print(f"Precision (LGBM): {self.precision:.4f}")
+        print(f"Recall (LGBM): {self.recall:.4f}")
+        print(f"F1 score (LGBM): {self.f1:.4f}")
+        print(f"F2 score (LGBM): {self.f2:.4f}")
+
+        return self.accuracy, self.precision, self.recall, self.f1, self.f2
 
 
     def get_params(self, deep=True):

@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# Azure ML Studio autosave/temp files
+*.amltmp
+.amlignore
+
+# Data & model artifacts (not distributed with the repo — see data/README.md)
+*.pkl
+*.h5
+Models/
+data/*.pkl
+
+# Training byproducts
+catboost_info/
+
+# Personal interview prep notes — not part of the project
+INTERVIEW_WALKTHROUGH.md
+
+# Environments
+.venv/
+venv/
+.env
