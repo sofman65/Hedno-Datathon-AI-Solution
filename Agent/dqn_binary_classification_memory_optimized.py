@@ -239,8 +239,8 @@ class DQN:
             dones = np.array(dones, dtype=bool)
             weights = np.array(weights, dtype=np.float32)
 
-            current_q_values = self.policy_net.predict(states, verbose=0)
-            current_q_values = current_q_values[np.arange(
+            current_q_all = self.policy_net.predict(states, verbose=0)
+            current_q_values = current_q_all[np.arange(
                 len(actions)), actions]
 
             next_q_values = self.target_net.predict(next_states, verbose=0)
@@ -252,10 +252,15 @@ class DQN:
             np.add(rewards, self.discount_factor *
                    next_q_values, out=target_q_values)
 
-            # Train the model
-            class_weights = {i: w for i, w in enumerate(weights)}
-            self.policy_net.fit(states, target_q_values,
-                                class_weight=class_weights, epochs=1, verbose=0)
+            # Train the model: only the taken action's Q-value is moved toward
+            # the Bellman target; the other action keeps its current estimate
+            # (standard DQN update). The 2023 version passed the 1-D target
+            # directly, which Keras 2 silently broadcast over BOTH outputs,
+            # collapsing the two Q-values toward each other.
+            target_matrix = current_q_all.copy()
+            target_matrix[np.arange(len(actions)), actions] = target_q_values
+            self.policy_net.fit(states, target_matrix,
+                                sample_weight=weights, epochs=1, verbose=0)
 
             # Update the priorities of the samples in the replay buffer
             errors = np.abs(target_q_values - current_q_values)
@@ -466,8 +471,8 @@ class DoubleDQN:
                    next_q_values, out=target_q_values)
 
             # Get the predicted Q-values for the current states and the chosen actions
-            current_q_values = self.policy_net.predict(states, verbose=0)
-            current_q_values = current_q_values[np.arange(
+            current_q_all = self.policy_net.predict(states, verbose=0)
+            current_q_values = current_q_all[np.arange(
                 len(actions)), actions]
 
             # Update the priorities of the samples in the replay buffer
@@ -479,8 +484,13 @@ class DoubleDQN:
             gc.collect()  # Force garbage collection
 
             # Train the policy network by minimizing the mean squared error
-            # between the predicted Q-values and the target Q-values
-            self.policy_net.fit(states, target_q_values,
+            # between the predicted and target Q-value of the TAKEN action only;
+            # the other action keeps its current estimate (standard DQN update).
+            # The 2023 version passed the 1-D target directly, which Keras 2
+            # silently broadcast over BOTH outputs, collapsing the Q-values.
+            target_matrix = current_q_all.copy()
+            target_matrix[np.arange(len(actions)), actions] = target_q_values
+            self.policy_net.fit(states, target_matrix,
                                 sample_weight=weights, epochs=1, verbose=0)
 
             # Update the target network every 10 episodes
